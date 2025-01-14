@@ -78,6 +78,13 @@
 			<version>2.1.0-alpha1</version>
 		</dependency>
 		<!-- Dependencias de LOGs -->
+		<!-- Dependencias de  guava (generacion de SHA-256)-->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>33.4.0-jre</version>
+		</dependency>
+		<!-- Dependencias de  guava (generacion de SHA-256)-->
 	</dependencies>
 
 	<build>
