@@ -1,12 +1,12 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.OriginUrl;
 import com.example.demo.model.Url;
+import com.example.demo.model.dto.UrlResponseDto;
 
 public interface IOriginUrl {
 
-    OriginUrl findByHash(String hash);
+    UrlResponseDto findByHash(String hash);
 
-    OriginUrl createUrl(Url url);
+    UrlResponseDto createUrl(Url url);
 
 }

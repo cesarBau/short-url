@@ -5,8 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.demo.entity.OriginUrl;
 import com.example.demo.model.Url;
+import com.example.demo.model.dto.UrlResponseDto;
 import com.example.demo.service.IOriginUrl;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,16 +26,16 @@ public class OriginUrlController {
     }
 
     @GetMapping("/{hash}")
-    public OriginUrl getShortUrl(@PathVariable String hash) {
+    public UrlResponseDto getShortUrl(@PathVariable String hash) {
         logger.info("Consume controller getShortUrl");
-        OriginUrl originUrl = originUrlService.findByHash(hash);
+        UrlResponseDto originUrl = originUrlService.findByHash(hash);
         return originUrl;
     }
 
     @PostMapping("/")
-    public OriginUrl createShortUrl(@RequestBody Url entity) {
+    public UrlResponseDto createShortUrl(@RequestBody Url entity) {
         logger.info("Consume controller createShortUrl");
-        OriginUrl originUrl = originUrlService.createUrl(entity);
+        UrlResponseDto originUrl = originUrlService.createUrl(entity);
         return originUrl;
     }
 

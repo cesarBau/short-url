@@ -11,8 +11,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.example.demo.entity.Domain;
 import com.example.demo.entity.OriginUrl;
 import com.example.demo.model.Url;
+import com.example.demo.model.dto.UrlResponseDto;
+import com.example.demo.repository.Domainrepository;
 import com.example.demo.repository.OriginUrlRepository;
 import com.google.common.hash.Hashing;
 
@@ -25,13 +28,15 @@ public class OriginUrlService implements IOriginUrl {
 
     private static Logger logger = LoggerFactory.getLogger(OriginUrlService.class);
     private OriginUrlRepository originUrlRepository;
+    private Domainrepository domainrepository;
 
-    public OriginUrlService(OriginUrlRepository originUrlRepository) {
+    public OriginUrlService(OriginUrlRepository originUrlRepository, Domainrepository domainrepository) {
         this.originUrlRepository = originUrlRepository;
+        this.domainrepository = domainrepository;
     }
 
     @Override
-    public OriginUrl findByHash(String hash) {
+    public UrlResponseDto findByHash(String hash) {
         logger.info("Consume service findByHash");
         logger.info("Finding by hash: " + hash);
         OriginUrl originUrl = originUrlRepository.findByHash(hash);
@@ -48,24 +53,42 @@ public class OriginUrlService implements IOriginUrl {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "the url has expired", null);
         }
-        return originUrl;
+        UrlResponseDto response = new UrlResponseDto();
+        response.setUrl(originUrl.getUrlOrigin());
+        response.setDomain(originUrl.getDomain().getName());
+        response.setShortUrl(originUrl.getDomain().getValue() + originUrl.getHash());
+        response.setExpiration(originUrl.getExpiration());
+        return response;
     }
 
     @Override
-    public OriginUrl createUrl(Url url) {
+    public UrlResponseDto createUrl(Url url) {
         logger.info("Consume service createUrl");
         logger.info("Creating url: " + url.getUrl());
-        String hash = Hashing.murmur3_128().hashString(url.getUrl(), StandardCharsets.UTF_8).toString();
-        LocalDateTime expiration = LocalDateTime.now().plusDays(daysExpired);
+        logger.info("Finding domain: " + url.getDomain());
+        Domain domain = domainrepository.findByName(url.getDomain());
+        if (domain == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "the domain not found", null);
+        }
         LocalDateTime now = LocalDateTime.now();
+        String hash = Hashing.murmur3_128().hashString(url.getUrl() + now.toString(), StandardCharsets.UTF_8)
+                .toString();
+        LocalDateTime expiration = LocalDateTime.now().plusDays(daysExpired);
         OriginUrl originUrl = new OriginUrl();
         originUrl.setUrlOrigin(url.getUrl());
         originUrl.setHash(hash);
         originUrl.setExpiration(expiration.toString());
         originUrl.setCreation(now);
         originUrl.setUpdate(now);
+        originUrl.setDomain(domain);
         logger.info(originUrl.toString());
-        OriginUrl response = originUrlRepository.save(originUrl);
+        OriginUrl processUrl = originUrlRepository.save(originUrl);
+        UrlResponseDto response = new UrlResponseDto();
+        response.setUrl(processUrl.getUrlOrigin());
+        response.setDomain(processUrl.getDomain().getName());
+        response.setShortUrl(processUrl.getDomain().getValue() + processUrl.getHash());
+        response.setExpiration(processUrl.getExpiration());
         logger.info(response.toString());
         return response;
     }

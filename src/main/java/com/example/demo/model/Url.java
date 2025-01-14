@@ -12,5 +12,6 @@ import lombok.Setter;
 public class Url {
 
     private String url;
+    private String domain;
 
 }
