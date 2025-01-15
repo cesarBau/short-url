@@ -26,6 +26,9 @@ public class OriginUrlService implements IOriginUrl {
     @Value("${url.expired}")
     private Long daysExpired;
 
+    @Value("${url.error}")
+    private String urlError;
+
     private static Logger logger = LoggerFactory.getLogger(OriginUrlService.class);
     private OriginUrlRepository originUrlRepository;
     private Domainrepository domainrepository;
@@ -45,19 +48,7 @@ public class OriginUrlService implements IOriginUrl {
                     HttpStatus.NOT_FOUND, "the hash does not exist", null);
         }
         logger.info("Validate if the url is not expired");
-        LocalDateTime expiration = LocalDateTime.parse(originUrl.getExpiration());
-        LocalDateTime now = LocalDateTime.now();
-        if (expiration.isBefore(now)) {
-            logger.error("The url has expired, proceeds to eliminate");
-            originUrlRepository.deleteById(originUrl.getId());
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "the url has expired", null);
-        }
-        UrlResponseDto response = new UrlResponseDto();
-        response.setUrl(originUrl.getUrlOrigin());
-        response.setDomain(originUrl.getDomain().getName());
-        response.setShortUrl(originUrl.getDomain().getValue() + originUrl.getHash());
-        response.setExpiration(originUrl.getExpiration());
+        UrlResponseDto response = createResponse(originUrl);
         return response;
     }
 
@@ -82,13 +73,10 @@ public class OriginUrlService implements IOriginUrl {
         originUrl.setCreation(now);
         originUrl.setUpdate(now);
         originUrl.setDomain(domain);
+        originUrl.setActive(true);
         logger.info(originUrl.toString());
         OriginUrl processUrl = originUrlRepository.save(originUrl);
-        UrlResponseDto response = new UrlResponseDto();
-        response.setUrl(processUrl.getUrlOrigin());
-        response.setDomain(processUrl.getDomain().getName());
-        response.setShortUrl(processUrl.getDomain().getValue() + processUrl.getHash());
-        response.setExpiration(processUrl.getExpiration());
+        UrlResponseDto response = createResponse(processUrl);
         logger.info(response.toString());
         return response;
     }
@@ -100,17 +88,34 @@ public class OriginUrlService implements IOriginUrl {
         OriginUrl originUrl = originUrlRepository.findByHash(hash);
         if (originUrl == null) {
             throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "the hash does not exist", null);
+                    HttpStatus.NOT_FOUND, "the url not found", null);
         }
+        if (!originUrl.isActive()) {
+            logger.info("The url is inactive");
+            return urlError;
+        }
+        String response = originUrl.getUrlOrigin();
         LocalDateTime expiration = LocalDateTime.parse(originUrl.getExpiration());
         LocalDateTime now = LocalDateTime.now();
         if (expiration.isBefore(now)) {
-            logger.error("The url has expired, proceeds to eliminate");
-            originUrlRepository.deleteById(originUrl.getId());
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "the url has expired", null);
+            logger.info("The url has expired");
+            originUrl.setActive(false);
+            originUrl.setUpdate(LocalDateTime.now());
+            originUrlRepository.save(originUrl);
+            response = urlError;
         }
-        return originUrl.getUrlOrigin();
+        return response;
+    }
+
+    @SuppressWarnings("unused")
+    private UrlResponseDto createResponse(OriginUrl processUrl) {
+        logger.info("Consume service createResponse");
+        UrlResponseDto response = new UrlResponseDto();
+        response.setUrl(processUrl.getUrlOrigin());
+        response.setDomain(processUrl.getDomain().getName());
+        response.setShortUrl(processUrl.getDomain().getValue() + processUrl.getHash());
+        response.setExpiration(processUrl.getExpiration());
+        return response;
     }
 
 }
