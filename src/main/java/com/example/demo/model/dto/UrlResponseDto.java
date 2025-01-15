@@ -17,11 +17,14 @@ public class UrlResponseDto extends Url {
     @JsonProperty("short_url")
     private String shortUrl;
     private String expiration;
+    @JsonProperty("active")
+    private boolean isActive;
 
-    public UrlResponseDto(Url url, String shortUrl, String expiration) {
+    public UrlResponseDto(Url url, String shortUrl, String expiration, boolean isActive) {
         super(url.getUrl(), url.getDomain());
         this.shortUrl = shortUrl;
         this.expiration = expiration;
+        this.isActive = isActive;
     }
 
 }

@@ -81,32 +81,6 @@ public class OriginUrlService implements IOriginUrl {
         return response;
     }
 
-    @Override
-    public String getRedirect(String hash) {
-        logger.info("Consume service getRedirect");
-        logger.info("Finding by hash: " + hash);
-        OriginUrl originUrl = originUrlRepository.findByHash(hash);
-        if (originUrl == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "the url not found", null);
-        }
-        if (!originUrl.isActive()) {
-            logger.info("The url is inactive");
-            return urlError;
-        }
-        String response = originUrl.getUrlOrigin();
-        LocalDateTime expiration = LocalDateTime.parse(originUrl.getExpiration());
-        LocalDateTime now = LocalDateTime.now();
-        if (expiration.isBefore(now)) {
-            logger.info("The url has expired");
-            originUrl.setActive(false);
-            originUrl.setUpdate(LocalDateTime.now());
-            originUrlRepository.save(originUrl);
-            response = urlError;
-        }
-        return response;
-    }
-
     @SuppressWarnings("unused")
     private UrlResponseDto createResponse(OriginUrl processUrl) {
         logger.info("Consume service createResponse");
@@ -115,6 +89,7 @@ public class OriginUrlService implements IOriginUrl {
         response.setDomain(processUrl.getDomain().getName());
         response.setShortUrl(processUrl.getDomain().getValue() + processUrl.getHash());
         response.setExpiration(processUrl.getExpiration());
+        response.setActive(processUrl.isActive());
         return response;
     }
 

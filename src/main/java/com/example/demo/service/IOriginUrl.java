@@ -9,6 +9,4 @@ public interface IOriginUrl {
 
     UrlResponseDto createUrl(Url url);
 
-    String getRedirect(String hash);
-
 }
