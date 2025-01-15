@@ -45,7 +45,8 @@ public class OriginUrl {
     @ManyToOne(targetEntity = Domain.class)
     @JoinColumn(name = "domain", referencedColumnName = "id")
     private Domain domain;
-    @Column(nullable = false)
-    private boolean active;
+    @ManyToOne(targetEntity = StatusUrl.class)
+    @JoinColumn(name = "url_active", referencedColumnName = "id")
+    private StatusUrl statusUrl;
 
 }

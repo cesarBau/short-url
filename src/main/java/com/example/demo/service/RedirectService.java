@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.demo.entity.OriginUrl;
+import com.example.demo.entity.StatusUrl;
 import com.example.demo.repository.OriginUrlRepository;
 
 @Service
@@ -39,7 +40,7 @@ public class RedirectService implements IRedirect {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND, "the url not found", null);
         }
-        if (!originUrl.isActive()) {
+        if (originUrl.getStatusUrl().getStatus().equals("INACTIVE")) {
             logger.info("The url is inactive");
             return urlError;
         }
@@ -48,7 +49,7 @@ public class RedirectService implements IRedirect {
         LocalDateTime now = LocalDateTime.now();
         if (expiration.isBefore(now)) {
             logger.info("The url has expired");
-            originUrl.setActive(false);
+            originUrl.setStatusUrl(new StatusUrl());
             originUrl.setUpdate(LocalDateTime.now());
             originUrlRepository.save(originUrl);
             response = urlError;

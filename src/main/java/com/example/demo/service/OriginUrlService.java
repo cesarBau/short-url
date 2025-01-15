@@ -13,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.example.demo.entity.Domain;
 import com.example.demo.entity.OriginUrl;
+import com.example.demo.entity.StatusUrl;
 import com.example.demo.model.Url;
 import com.example.demo.model.dto.UrlResponseDto;
 import com.example.demo.repository.Domainrepository;
@@ -73,7 +74,7 @@ public class OriginUrlService implements IOriginUrl {
         originUrl.setCreation(now);
         originUrl.setUpdate(now);
         originUrl.setDomain(domain);
-        originUrl.setActive(true);
+        originUrl.setStatusUrl(new StatusUrl((long) 1, "ACTIVE", "The url is active"));
         logger.info(originUrl.toString());
         OriginUrl processUrl = originUrlRepository.save(originUrl);
         UrlResponseDto response = createResponse(processUrl);
@@ -89,7 +90,7 @@ public class OriginUrlService implements IOriginUrl {
         response.setDomain(processUrl.getDomain().getName());
         response.setShortUrl(processUrl.getDomain().getValue() + processUrl.getHash());
         response.setExpiration(processUrl.getExpiration());
-        response.setActive(processUrl.isActive());
+        response.setIsActive(processUrl.getStatusUrl().getStatus());
         return response;
     }
 

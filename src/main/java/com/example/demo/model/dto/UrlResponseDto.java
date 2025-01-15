@@ -18,9 +18,9 @@ public class UrlResponseDto extends Url {
     private String shortUrl;
     private String expiration;
     @JsonProperty("active")
-    private boolean isActive;
+    private String isActive;
 
-    public UrlResponseDto(Url url, String shortUrl, String expiration, boolean isActive) {
+    public UrlResponseDto(Url url, String shortUrl, String expiration, String isActive) {
         super(url.getUrl(), url.getDomain());
         this.shortUrl = shortUrl;
         this.expiration = expiration;
