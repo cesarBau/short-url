@@ -93,4 +93,24 @@ public class OriginUrlService implements IOriginUrl {
         return response;
     }
 
+    @Override
+    public String getRedirect(String hash) {
+        logger.info("Consume service getRedirect");
+        logger.info("Finding by hash: " + hash);
+        OriginUrl originUrl = originUrlRepository.findByHash(hash);
+        if (originUrl == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "the hash does not exist", null);
+        }
+        LocalDateTime expiration = LocalDateTime.parse(originUrl.getExpiration());
+        LocalDateTime now = LocalDateTime.now();
+        if (expiration.isBefore(now)) {
+            logger.error("The url has expired, proceeds to eliminate");
+            originUrlRepository.deleteById(originUrl.getId());
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "the url has expired", null);
+        }
+        return originUrl.getUrlOrigin();
+    }
+
 }
