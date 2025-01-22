@@ -26,7 +26,7 @@ public class RedirectController {
     public RedirectView redirect(@PathVariable String id) {
         log.info("Consume controller Redirect");
         log.info("Search to: " + id);
-        String url = iRedirect.getRedirect(id);
+        String url = iRedirect.getRedirectRedis(id);
         log.info("Redirect to: " + url);
         return new RedirectView(url);
     }

@@ -85,6 +85,12 @@
 			<version>33.4.0-jre</version>
 		</dependency>
 		<!-- Dependencias de  guava (generacion de SHA-256)-->
+		<!-- Dependencias de  redis-->
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>5.2.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>

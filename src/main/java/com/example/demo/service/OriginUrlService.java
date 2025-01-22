@@ -3,8 +3,7 @@ package com.example.demo.service;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
@@ -20,6 +19,9 @@ import com.example.demo.repository.Domainrepository;
 import com.example.demo.repository.OriginUrlRepository;
 import com.google.common.hash.Hashing;
 
+import lombok.extern.log4j.Log4j2;
+
+@Log4j2
 @Service
 @PropertySource("classpath:other.properties")
 public class OriginUrlService implements IOriginUrl {
@@ -30,34 +32,38 @@ public class OriginUrlService implements IOriginUrl {
     @Value("${url.error}")
     private String urlError;
 
-    private static Logger logger = LoggerFactory.getLogger(OriginUrlService.class);
     private OriginUrlRepository originUrlRepository;
     private Domainrepository domainrepository;
 
-    public OriginUrlService(OriginUrlRepository originUrlRepository, Domainrepository domainrepository) {
+    @Autowired
+    private ICrudRedis iCrudRedis;
+
+    public OriginUrlService(OriginUrlRepository originUrlRepository, Domainrepository domainrepository,
+            ICrudRedis iCrudRedis) {
         this.originUrlRepository = originUrlRepository;
         this.domainrepository = domainrepository;
+        this.iCrudRedis = iCrudRedis;
     }
 
     @Override
     public UrlResponseDto findByHash(String hash) {
-        logger.info("Consume service findByHash");
-        logger.info("Finding by hash: " + hash);
+        log.info("Consume service findByHash");
+        log.info("Finding by hash: " + hash);
         OriginUrl originUrl = originUrlRepository.findByHash(hash);
         if (originUrl == null) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND, "the hash does not exist", null);
         }
-        logger.info("Validate if the url is not expired");
+        log.info("Validate if the url is not expired");
         UrlResponseDto response = createResponse(originUrl);
         return response;
     }
 
     @Override
     public UrlResponseDto createUrl(Url url) {
-        logger.info("Consume service createUrl");
-        logger.info("Creating url: " + url.getUrl());
-        logger.info("Finding domain: " + url.getDomain());
+        log.info("Consume service createUrl");
+        log.info("Creating url: " + url.getUrl());
+        log.info("Finding domain: " + url.getDomain());
         Domain domain = domainrepository.findByName(url.getDomain());
         if (domain == null) {
             throw new ResponseStatusException(
@@ -75,16 +81,19 @@ public class OriginUrlService implements IOriginUrl {
         originUrl.setUpdate(now);
         originUrl.setDomain(domain);
         originUrl.setStatusUrl(new StatusUrl((long) 1, "ACTIVE", "The url is active"));
-        logger.info(originUrl.toString());
+        log.info(originUrl.toString());
         OriginUrl processUrl = originUrlRepository.save(originUrl);
         UrlResponseDto response = createResponse(processUrl);
-        logger.info(response.toString());
+        log.info(response.toString());
+        log.info("Insert to redis origin url");
+        long expireAt = 60 * 60 * 24 * (daysExpired + 1);
+        iCrudRedis.save(processUrl.getHash(), processUrl.getUrlOrigin() + "|" + processUrl.getExpiration(), expireAt);
         return response;
     }
 
     @SuppressWarnings("unused")
     private UrlResponseDto createResponse(OriginUrl processUrl) {
-        logger.info("Consume service createResponse");
+        log.info("Consume service createResponse");
         UrlResponseDto response = new UrlResponseDto();
         response.setUrl(processUrl.getUrlOrigin());
         response.setDomain(processUrl.getDomain().getName());
@@ -92,6 +101,20 @@ public class OriginUrlService implements IOriginUrl {
         response.setExpiration(processUrl.getExpiration());
         response.setIsActive(processUrl.getStatusUrl().getStatus());
         return response;
+    }
+
+    @Override
+    public void changeStatus(String hash) {
+        log.info("Consume service changeStatus");
+        log.info("Finding by hash: " + hash);
+        OriginUrl originUrl = originUrlRepository.findByHash(hash);
+        if (originUrl == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "the hash does not exist", null);
+        }
+        originUrl.setStatusUrl(new StatusUrl());
+        originUrl.setUpdate(LocalDateTime.now());
+        originUrlRepository.save(originUrl);
     }
 
 }

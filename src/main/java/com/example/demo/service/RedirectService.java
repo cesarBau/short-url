@@ -29,8 +29,16 @@ public class RedirectService implements IRedirect {
     @Autowired
     private IVisit iVisit;
 
-    public RedirectService(OriginUrlRepository originUrlRepository) {
+    @Autowired
+    private ICrudRedis iCrudRedis;
+
+    @Autowired
+    private IOriginUrl iOriginUrl;
+
+    public RedirectService(OriginUrlRepository originUrlRepository, ICrudRedis iCrudRedis, IOriginUrl iOriginUrl) {
         this.originUrlRepository = originUrlRepository;
+        this.iCrudRedis = iCrudRedis;
+        this.iOriginUrl = iOriginUrl;
     }
 
     @Override
@@ -64,6 +72,33 @@ public class RedirectService implements IRedirect {
         }
         iVisit.saveVisit(visit);
         return response;
+    }
+
+    @Override
+    public String getRedirectRedis(String hash) {
+        log.info("Consume service getRedirectRedis");
+        // Search to redis origin url
+        String searchRedis = iCrudRedis.find(hash);
+        if (searchRedis == null) {
+            log.info("The url not found in redis, search in DB");
+            return getRedirect(hash);
+        }
+        Visit visit = new Visit();
+        visit.setHash(hash);
+        visit.setConsume(LocalDateTime.now());
+        visit.setStatusUrl(new StatusUrl());
+        String[] valuesSplit = searchRedis.split("\\|");
+        LocalDateTime expiration = LocalDateTime.parse(valuesSplit[1]);
+        if (expiration.isBefore(LocalDateTime.now())) {
+            log.info("The url has expired");
+            iOriginUrl.changeStatus(hash);
+            iVisit.saveVisit(visit);
+            iCrudRedis.delete(hash);
+            return urlError;
+        }
+        visit.setStatusUrl(new StatusUrl((long) 1, "ACTIVE", "The url is active"));
+        iVisit.saveVisit(visit);
+        return valuesSplit[0];
     }
 
 }

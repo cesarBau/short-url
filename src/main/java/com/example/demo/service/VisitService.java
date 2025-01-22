@@ -19,7 +19,7 @@ public class VisitService implements IVisit {
 
     @Override
     public void saveVisit(Visit visit) {
-        log.info("Consume service Visit");
+        log.info("Consume service saveVisit");
         visitRepository.save(visit);
     }
 }

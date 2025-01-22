@@ -9,4 +9,6 @@ public interface IOriginUrl {
 
     UrlResponseDto createUrl(Url url);
 
+    void changeStatus(String hash);
+
 }
