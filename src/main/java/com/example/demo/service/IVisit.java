@@ -1,6 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.Visit;
+import com.example.demo.model.Visit;
 
 public interface IVisit {
 

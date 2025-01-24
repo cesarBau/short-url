@@ -91,6 +91,13 @@
 			<artifactId>jedis</artifactId>
 			<version>5.2.0</version>
 		</dependency>
+		<!-- Dependencias de  redis-->
+		<!-- Dependencias de AMQP-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-amqp</artifactId>
+		</dependency>
+		<!-- Dependencias de AMQP-->
 	</dependencies>
 
 	<build>

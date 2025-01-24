@@ -11,7 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.example.demo.entity.OriginUrl;
 import com.example.demo.entity.StatusUrl;
-import com.example.demo.entity.Visit;
+import com.example.demo.model.Visit;
 import com.example.demo.repository.OriginUrlRepository;
 
 import lombok.extern.log4j.Log4j2;
