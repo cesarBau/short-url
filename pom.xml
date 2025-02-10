@@ -102,6 +102,22 @@
 			<artifactId>spring-boot-starter-amqp</artifactId>
 		</dependency>
 		<!-- Dependencias de AMQP-->
+		<!-- Dependencias de jUnit 5 -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>5.11.4</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- Dependencias de jUnit 5 -->
+		<!-- Dependencias mockito -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>5.15.2</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- Dependencias mockito -->
 	</dependencies>
 
 	<build>
